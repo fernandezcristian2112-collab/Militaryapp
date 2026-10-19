@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operación Fénix - Calistenia & Boxeo</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --accent: #238636;
+            --accent-hover: #2ea043;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --border: #30363d;
+            --orange: #f0883e;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        h1 {
+            font-size: 1.6rem;
+            margin: 0 0 5px 0;
+            color: #58a6ff;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        p.subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+        .nav-days {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            width: 100%;
+            max-width: 500px;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+        .day-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            flex: 1;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .day-btn.active {
+            background-color: var(--accent);
+            border-color: #3fb950;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(35, 134, 54, 0.4);
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            margin-bottom: 15px;
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            margin-top: 0;
+            color: #7ee787;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+        ul {
+            padding-left: 18px;
+            margin: 10px 0;
+        }
+        li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+            font-size: 0.9rem;
+        }
+        
+        /* CONTENEDOR DEL AVATAR ANIMADO (ESTILO TÁCTICO) */
+        .avatar-viewport {
+            background: #040d21;
+            border: 1px solid #1f6feb;
+            border-radius: 8px;
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+            box-shadow: inset 0 0 15px rgba(31, 111, 235, 0.2);
+        }
+        .radar-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(31, 111, 235, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(31, 111, 235, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .avatar-label {
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            font-size: 0.7rem;
+            color: #58a6ff;
+            font-family: monospace;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        /* MONIGOTE ANIMADO CSS */
+        .stickman {
+            position: relative;
+            width: 40px;
+            height: 70px;
+            margin-top: 10px;
+            transform-origin: bottom center;
+        }
+        .head {
+            width: 14px;
+            height: 14px;
+            background: #58a6ff;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 13px;
+        }
+        .torso {
+            width: 4px;
+            height: 25px;
+            background: #c9d1d9;
+            position: absolute;
+            top: 14px;
+            left: 18px;
+        }
+        .arms {
+            width: 32px;
+            height: 4px;
+            background: #c9d1d9;
+            position: absolute;
+            top: 18px;
+            left: 4px;
+            border-radius: 2px;
+        }
+        .legs {
+            width: 4px;
+            height: 25px;
+            background: #c9d1d9;
+            position: absolute;
+            top: 38px;
+            left: 18px;
+        }
+
+        /* ANIMACIONES SEGÚN EL MODO */
+        .pushup-mode .stickman {
+            animation: pushupAnim 1.5s infinite ease-in-out;
+        }
+        @keyframes pushupAnim {
+            0%, 100% { transform: translateY(0px) scaleY(1); }
+            50% { transform: translateY(12px) scaleY(0.7); }
+        }
+
+        .core-mode .stickman {
+            animation: coreAnim 1.2s infinite ease-in-out;
+        }
+        @keyframes coreAnim {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(15deg) translateY(-5px); }
+        }
+
+        .box-mode .stickman {
+            animation: boxAnim 0.8s infinite steps(2);
+        }
+        @keyframes boxAnim {
+            0% { transform: translateX(-3px); }
+            50% { transform: translateX(3px); }
+            100% { transform: translateX(-3px); }
+        }
+
+        .legs-mode .stickman {
+            animation: legsAnim 1.5s infinite ease-in-out;
+        }
+        @keyframes legsAnim {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(10px); }
+        }
+
+        /* CRONÓMETRO */
+        .timer-box {
+            text-align: center;
+            background: #0d1117;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed var(--border);
+        }
+        #timer-display {
+            font-size: 2.2rem;
+            font-family: monospace;
+            color: var(--orange);
+            font-weight: bold;
+            margin: 3px 0;
+            letter-spacing: 2px;
+        }
+        .timer-btns {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .timer-btns button {
+            background: #21262d;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+        .timer-btns button.start { background: var(--accent); color: white; border-color: #3fb950; }
+        .timer-btns button.reset { background: #da3633; color: white; border-color: #f85149; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Operación Fénix</h1>
+        <p class="subtitle">Calistenia Militar & Boxeo • Peso: 76 kg</p>
+    </header>
+
+    <div class="nav-days">
+        <button class="day-btn active" onclick="showDay('lunes', 'pushup-mode', 'Simulación: Empuje / Flexiones')">Lunes</button>
+        <button class="day-btn" onclick="showDay('martes', 'core-mode', 'Simulación: Resistencia / Core')">Martes</button>
+        <button class="day-btn" onclick="showDay('jueves', 'box-mode', 'Simulación: Tracción / Sombra')">Jueves</button>
+        <button class="day-btn" onclick="showDay('viernes', 'legs-mode', 'Simulación: Piernas / Sentadillas')">Viernes</button>
+    </div>
+
+    <div class="container">
+        <!-- VISOR 3D / AVATAR TÁCTICO -->
+        <div class="card" style="padding: 10px 10px 15px 10px;">
+            <div id="avatar-container" class="avatar-viewport pushup-mode">
+                <div class="radar-grid"></div>
+                <div id="avatar-status" class="avatar-label">Estado: Empuje / Flexiones</div>
+                <div class="stickman">
+                    <div class="head"></div>
+                    <div class="arms"></div>
+                    <div class="torso"></div>
+                    <div class="legs"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LUNES -->
+        <div id="lunes" class="card day-content">
+            <h2>Lunes: Empuje + Sombra</h2>
+            <p><strong>Enfoque:</strong> Pecho, Hombros, Tríceps & Cardio Técnico.</p>
+            <ul>
+                <li><strong>Flexiones tradicionales:</strong> 4 series x 12-15 reps.</li>
+                <li><strong>Flexiones diamantinas:</strong> 4 series x 8-10 reps.</li>
+                <li><strong>Fondos en silla/banco:</strong> 4 series x 12 reps.</li>
+                <li><strong>Plancha isométrica:</strong> 4 series x 45 segundos.</li>
+                <li><strong>Sombra de boxeo (Jab y Directo):</strong> 3 rounds (2m trabajo / 1m descanso).</li>
+            </ul>
+        </div>
+
+        <!-- MARTES -->
+        <div id="martes" class="card day-content hidden">
+            <h2>Martes: Core & Aeróbico</h2>
+            <p><strong>Enfoque:</strong> Resistencia pectoral y abdominal.</p>
+            <ul>
+                <li><strong>Abdominales bicicleta:</strong> 4 rondas x 20 reps por lado.</li>
+                <li><strong>Elevaciones de piernas:</strong> 4 rondas x 12 reps (lentas).</li>
+                <li><strong>Escaladores (Mountain Climbers):</strong> 4 rondas x 40 segundos.</li>
+                <li><strong>Burpees controlados:</strong> 4 rondas x 8 reps.</li>
+            </ul>
+        </div>
+
+        <!-- JUEVES -->
+        <div id="jueves" class="card day-content hidden">
+            <h2>Jueves: Tracción + Golpeo</h2>
+            <p><strong>Enfoque:</strong> Espalda, Bíceps & Coordinación.</p>
+            <ul>
+                <li><strong>Dominadas (o Australianas):</strong> 4 series x 5-8 reps.</li>
+                <li><strong>Remo invertido:</strong> 4 series x 12 reps.</li>
+                <li><strong>Curl de bíceps corporal:</strong> 4 series x 10 reps.</li>
+                <li><strong>Sombra avanzada (Ganchos y esquivas):</strong> 3 rounds (3m trabajo / 1m descanso).</li>
+            </ul>
+        </div>
+
+        <!-- VIERNES -->
+        <div id="viernes" class="card day-content hidden">
+            <h2>Jueves/Viernes: Piernas & Potencia</h2>
+            <p><strong>Enfoque:</strong> Tren inferior y explosividad.</p>
+            <ul>
+                <li><strong>Sentadillas libres:</strong> 4 series x 20 reps.</li>
+                <li><strong>Zancadas (Lunges):</strong> 4 series x 10 reps por pierna.</li>
+                <li><strong>Sentadillas con salto:</strong> 4 series x 10 reps.</li>
+                <li><strong>Elevación de talones:</strong> 4 series x 20 reps.</li>
+                <li><strong>Finisher:</strong> 1 minuto de rectos continuos a máxima velocidad.</li>
+            </ul>
+        </div>
+
+        <!-- CRONÓMETRO -->
+        <div class="card">
+            <h2>⏱️ Temporizador Táctico</h2>
+            <div class="timer-box">
+                <div id="timer-display">01:00</div>
+                <div class="timer-btns">
+                    <button class="start" onclick="startTimer(60)">Descanso (1m)</button>
+                    <button class="start" onclick="startTimer(180)">Round Box (3m)</button>
+                    <button class="reset" onclick="resetTimer()">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showDay(dayId, modeClass, statusText) {
+            // Ocultar todos los días y mostrar el seleccionado
+            document.querySelectorAll('.day-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.day-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(dayId).classList.remove('hidden');
+            event.target.classList.add('active');
+
+            // Cambiar la animación del avatar táctico
+            const viewport = document.getElementById('avatar-container');
+            viewport.className = "avatar-viewport " + modeClass;
+            document.getElementById('avatar-status').innerText = "Estado: " + statusText;
+        }
+
+        let countdown;
+        function startTimer(seconds) {
+            clearInterval(countdown);
+            let timeLeft = seconds;
+            updateDisplay(timeLeft);
+            
+            countdown = setInterval(() => {
+                timeLeft--;
+                updateDisplay(timeLeft);
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    alert("¡Alerta: Tiempo cumplido!");
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(countdown);
+            updateDisplay(60);
+        }
+
+        function updateDisplay(seconds) {
+            let mins = Math.floor(seconds / 60);
+            let secs = seconds % 60;
+            document.getElementById('timer-display').innerText = 
+                (mins < 10 ? "0" : "") + mins + ":" + (secs < 10 ? "0" : "") + secs;
+        }
+    </script>
+</body>
+</html>
